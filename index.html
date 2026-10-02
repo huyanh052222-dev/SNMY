@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Khung Trái Tim Đom Đóm 💖 29/09</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@600;700;800;900&family=Caveat:wght@600;700&family=Dancing+Script:wght@600;700&family=Montserrat:wght@500;700;800;900&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Canvas container for full screen heart firefly simulation -->
+  <canvas id="fireflyCanvas"></canvas>
+
+  <!-- Virtual scroll spacer for Heart stage scrolling -->
+  <div id="scrollSpacer" class="scroll-spacer"></div>
+
+  <!-- Local Audio MP3 uploaded by user (Trimmed 5s) -->
+  <audio id="bgMusic" src="music.mp3" loop preload="auto" autoplay playsinline></audio>
+
+  <!-- UI Overlay Header & Controls -->
+  <div class="ui-container">
+    <div class="top-bar">
+      <div class="stage-badge" id="stageBadge">
+        <span class="badge-dot"></span>
+        <span class="badge-text" id="badgeText">✨ Mừng Sinh Nhật Mẹ 💖</span>
+      </div>
+
+      <div class="controls-group">
+        <button id="musicBtn" class="glass-btn" title="Bật/Tắt nhạc nền MP3" aria-label="Toggle Music">
+          <svg class="icon" viewBox="0 0 24 24" width="20" height="20">
+            <path fill="currentColor" d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+          </svg>
+          <span class="btn-label" id="musicLabel">Bật nhạc</span>
+        </button>
+
+        <button id="replayBtn" class="glass-btn" title="Xem lại từ đầu" aria-label="Replay">
+          <svg class="icon" viewBox="0 0 24 24" width="20" height="20">
+            <path fill="currentColor" d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/>
+          </svg>
+          <span class="btn-label">Xem lại</span>
+        </button>
+
+        <button id="skipBtn" class="glass-btn" title="Đến Trái Tim Hồng" aria-label="Skip to Heart">
+          <svg class="icon" viewBox="0 0 24 24" width="20" height="20">
+            <path fill="currentColor" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+          </svg>
+          <span class="btn-label">Trái tim</span>
+        </button>
+
+        <button id="messageBtn" class="glass-btn" title="Thiệp chúc mừng" aria-label="Greeting Card">
+          <svg class="icon" viewBox="0 0 24 24" width="20" height="20">
+            <path fill="currentColor" d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+          </svg>
+          <span class="btn-label">Lời chúc</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Interactive Hint for User (Early Stages) -->
+    <div class="interactive-hint" id="interactiveHint">
+      <div class="hint-pulse"></div>
+      <span id="hintText">Kéo qua kéo lại trái tim, hoặc di chuột đến gần để đom đóm bu quanh 💖</span>
+    </div>
+
+    <!-- Love Scroll Panel (Active in Heart Stage: Bơm đầy tình yêu theo nhịp cuộn) -->
+    <div class="love-scroll-panel" id="loveScrollPanel">
+      <div class="scroll-track-container" id="scrollTrackContainer" title="Cuộn chuột hoặc kéo thanh trượt để bơm đầy trái tim">
+        <div class="scroll-track-bar">
+          <div class="scroll-fill-bar" id="scrollFillBar"></div>
+          <div class="scroll-thumb-heart" id="scrollThumbHeart">💖</div>
+        </div>
+      </div>
+      <div class="scroll-prompt" id="scrollPrompt">
+        <span class="scroll-icon-down">⬇️</span>
+        <span class="scroll-prompt-text" id="scrollPromptText">Cuộn xuống dưới để bơm đầy trái tim tình yêu</span>
+        <span class="scroll-percent-pill" id="scrollPercentPill">0%</span>
+      </div>
+    </div>
+
+    <!-- Floating Audio Unlock Prompt if Autoplay is restricted by browser -->
+    <div class="audio-prompt-banner" id="audioPromptBanner">
+      <span class="music-note-icon">🎵</span>
+      <span>Nhấp bất kỳ đâu để bật nhạc & mở tiệc sinh nhật 💖</span>
+    </div>
+  </div>
+
+  <!-- Storytelling Experience (Active in Story Mode: Chuyển cảnh kể chuyện & Ảnh kỷ niệm) -->
+  <div id="storyContainer" class="story-container">
+    <!-- Story Hero Header -->
+    <header class="story-hero">
+      <div class="story-hero-badge">📖 Kỷ Niệm Yêu Thương • 29/09</div>
+      <h1 class="story-hero-title">Hành Trình Yêu Thương Cùng Mẹ</h1>
+      <p class="story-hero-subtitle">Mỗi bước con đi, đều có ánh sáng dịu hiền và tình yêu thương bao la của Mẹ soi đường...</p>
+      <div class="story-scroll-cue">
+        <span class="story-cue-arrow">⬇️</span>
+        <span class="story-cue-text">Lướt xuống để cùng con mở từng trang kỷ niệm & lời chúc 💖</span>
+      </div>
+    </header>
+
+    <!-- Story Timeline / Chapter Cards -->
+    <div class="story-chapters-list">
+
+      <!-- Chapter 1 -->
+      <article class="story-card" data-chapter="1">
+        <div class="story-card-inner">
+          <div class="story-card-photo-wrapper">
+            <div class="story-photo-frame has-photo" data-index="1" title="Chạm để xem phóng to ảnh">
+              <input type="file" accept="image/*" class="story-photo-input" id="photoInput1">
+              <img class="story-photo-img" id="photoImg1" src="images/photo1.jpg" alt="Ba Mẹ bên thác nước bình yên" data-caption="🌸 Khoảnh khắc ngọt ngào bên Ba Mẹ">
+            </div>
+            <div class="photo-caption-tag">🌸 Khoảnh khắc ngọt ngào bên Ba Mẹ</div>
+          </div>
+
+          <div class="story-card-content">
+            <div class="chapter-number">Chương 01 • Bầu Trời Bình Yên</div>
+            <h2 class="chapter-title">Mẹ Là Bình Yên Nhất Của Con</h2>
+            <div class="chapter-divider"></div>
+            <p class="chapter-text">
+              Dù cuộc sống ngoài kia có bao nhiêu bão giông và vội vã, chỉ cần nghĩ về Mẹ, về ngôi nhà thân thương và bữa cơm ấm áp, trong lòng con lại ngập tràn bình yên.
+              <br><br>
+              Cảm ơn Mẹ đã luôn là bến đỗ dịu dàng nhất, bao dung mọi vụng dại của con, chở che con bằng tất cả sự hy sinh thầm lặng mà vĩ đại.
+            </p>
+            <div class="chapter-wish-badge">🌸 Chúc Mẹ một đời an yên & thanh thản</div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Chapter 2 -->
+      <article class="story-card" data-chapter="2">
+        <div class="story-card-inner reverse">
+          <div class="story-card-photo-wrapper">
+            <div class="story-photo-frame has-photo portrait" data-index="2" title="Chạm để xem phóng to ảnh">
+              <input type="file" accept="image/*" class="story-photo-input" id="photoInput2">
+              <img class="story-photo-img" id="photoImg2" src="images/photo2.jpg" alt="Nụ cười rạng rỡ của Mẹ" data-caption="✨ Nụ cười rạng rỡ đón nắng mai" style="object-position: center 30%;">
+            </div>
+            <div class="photo-caption-tag">✨ Nụ cười rạng rỡ đón nắng mai</div>
+          </div>
+
+          <div class="story-card-content">
+            <div class="chapter-number">Chương 02 • Nụ Cười Ấm Áp</div>
+            <h2 class="chapter-title">Nụ Cười Mẹ Là Mùa Xuân</h2>
+            <div class="chapter-divider"></div>
+            <p class="chapter-text">
+              Con luôn nhớ mãi nụ cười hiền hậu của Mẹ mỗi khi nhìn con khôn lớn, nụ cười xua tan mọi mệt nhọc của những ngày tháng gian nan.
+              <br><br>
+              Bước sang tuổi mới, con chỉ mong trên gương mặt Mẹ lúc nào cũng rạng ngời nụ cười an nhiên ấy. Mẹ hãy cứ vui tươi, mọi âu lo hãy để con gánh vác nhé!
+            </p>
+            <div class="chapter-wish-badge">✨ Chúc Mẹ luôn rạng rỡ nụ cười tươi</div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Chapter 3 -->
+      <article class="story-card" data-chapter="3">
+        <div class="story-card-inner">
+          <div class="story-card-photo-wrapper">
+            <div class="story-photo-frame has-photo portrait" data-index="3" title="Chạm để xem phóng to ảnh">
+              <input type="file" accept="image/*" class="story-photo-input" id="photoInput3">
+              <img class="story-photo-img" id="photoImg3" src="images/photo3.jpg" alt="Mẹ dịu dàng bên biển xanh" data-caption="🌿 Dịu dàng & Thư thái bên biển xanh" style="object-position: center 35%;">
+            </div>
+            <div class="photo-caption-tag">🌿 Dịu dàng & Thư thái bên biển xanh</div>
+          </div>
+
+          <div class="story-card-content">
+            <div class="chapter-number">Chương 03 • Tình Thương Vô Bờ</div>
+            <h2 class="chapter-title">Đôi Bàn Tay Nâng Bước Con Đi</h2>
+            <div class="chapter-divider"></div>
+            <p class="chapter-text">
+              Đôi bàn tay Mẹ qua bao năm tháng đã gom góp từng chút ngọt lành cho gia đình, chăm chút cho con từng manh áo, bát canh ngọt ngào.
+              <br><br>
+              Tình thương của Mẹ như dòng suối không bao giờ vơi cạn, nuôi dưỡng tâm hồn con bằng sự nhân hậu và lòng bao dung. Con biết ơn Mẹ suốt cả cuộc đời này!
+            </p>
+            <div class="chapter-wish-badge">💖 Biết ơn từng giây phút có Mẹ trong đời</div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Chapter 4 -->
+      <article class="story-card" data-chapter="4">
+        <div class="story-card-inner reverse">
+          <div class="story-card-photo-wrapper">
+            <div class="story-photo-frame has-photo portrait" data-index="4" title="Chạm để xem phóng to ảnh">
+              <input type="file" accept="image/*" class="story-photo-input" id="photoInput4">
+              <img class="story-photo-img" id="photoImg4" src="images/photo4.jpg" alt="Ba Mẹ đồng hành bên nhau" data-caption="👑 Gắn kết bền chặt & Hạnh phúc dài lâu" style="object-position: center 25%;">
+            </div>
+            <div class="photo-caption-tag">👑 Gắn kết bền chặt & Hạnh phúc dài lâu</div>
+          </div>
+
+          <div class="story-card-content">
+            <div class="chapter-number">Chương 04 • Ước Nguyện Cho Mẹ</div>
+            <h2 class="chapter-title">Chúc Mẹ Luôn Dồi Dào Sức Khỏe</h2>
+            <div class="chapter-divider"></div>
+            <p class="chapter-text">
+              Điều ước lớn nhất của con trong ngày sinh nhật hôm nay không có gì quý hơn sức khỏe của Mẹ.
+              <br><br>
+              Chúc Mẹ thân tâm an lạc, ngủ thật ngon giấc mỗi đêm, thức dậy với tinh thần phơi phới, sống vui sống khỏe cùng con cháu thêm thật nhiều thập kỷ nữa!
+            </p>
+            <div class="chapter-wish-badge">🍀 Chúc Mẹ bách niên giai lão & an khang</div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Chapter 5 (Grand Finale Card) -->
+      <article class="story-card story-finale-card" data-chapter="5">
+        <div class="story-card-inner">
+          <div class="story-card-photo-wrapper">
+            <div class="story-photo-mosaic" id="storyMosaicGallery" title="Album 4 khoảnh khắc đáng nhớ của Mẹ">
+              <div class="mosaic-thumb" data-src="images/photo1.jpg" data-caption="🌸 Khoảnh khắc ngọt ngào bên Ba Mẹ"><img src="images/photo1.jpg" alt="Kỷ niệm 1"></div>
+              <div class="mosaic-thumb" data-src="images/photo2.jpg" data-caption="✨ Nụ cười rạng rỡ đón nắng mai"><img src="images/photo2.jpg" alt="Kỷ niệm 2"></div>
+              <div class="mosaic-thumb" data-src="images/photo3.jpg" data-caption="🌿 Dịu dàng & Thư thái bên biển xanh"><img src="images/photo3.jpg" alt="Kỷ niệm 3"></div>
+              <div class="mosaic-thumb" data-src="images/photo4.jpg" data-caption="👑 Gắn kết bền chặt & Hạnh phúc dài lâu"><img src="images/photo4.jpg" alt="Kỷ niệm 4"></div>
+            </div>
+            <div class="photo-caption-tag golden">🌟 Album Kỷ Niệm 29/09 Của Mẹ</div>
+          </div>
+
+          <div class="story-card-content">
+            <div class="chapter-number golden">Chương Cuối • Lời Hứa Yêu Thương</div>
+            <h2 class="chapter-title golden">Con Yêu Mẹ Nhất Trên Đời!</h2>
+            <div class="chapter-divider golden"></div>
+            <p class="chapter-text">
+              Dù vũ trụ đêm có hàng ngàn triệu vì sao lấp lánh, Mẹ vẫn luôn là vầng trăng sáng nhất, dịu hiền nhất trong trái tim con.
+              <br><br>
+              Hôm nay 29/09, con xin dành tặng Mẹ trọn vẹn tình yêu thương sâu lắng nhất. Chúc mừng sinh nhật Mẹ yêu của con! ❤️
+            </p>
+
+            <div class="story-action-group">
+              <button class="story-heart-burst-btn" id="storyHeartBurstBtn">
+                <span>💖 Thả Ngàn Trái Tim Cho Mẹ</span>
+              </button>
+              <button class="story-open-letter-btn" id="storyOpenLetterBtn">
+                <span>💌 Mở Thiệp Chúc Mừng</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </article>
+
+    </div>
+
+    <!-- Story Footer -->
+    <footer class="story-footer">
+      <div class="footer-rose">🌹 ✨ 🌹</div>
+      <p class="footer-text">Mừng Ngày Sinh Nhật Mẹ Yêu 29/09 • Mãi Mãi Một Tình Yêu</p>
+      <button class="footer-replay-btn" id="footerReplayBtn">🔄 Xem lại hành trình</button>
+    </footer>
+  </div>
+
+  <!-- Lightbox Modal for Photo Fullscreen Preview -->
+  <div class="lightbox-backdrop" id="lightboxBackdrop">
+    <div class="lightbox-content">
+      <button class="lightbox-close-btn" id="lightboxCloseBtn" aria-label="Đóng">&times;</button>
+      <img class="lightbox-img" id="lightboxImg" alt="Xem ảnh kỷ niệm">
+      <p class="lightbox-caption" id="lightboxCaption"></p>
+    </div>
+  </div>
+
+  <!-- Birthday Greeting Card Modal -->
+  <div class="modal-backdrop" id="modalBackdrop">
+    <div class="greeting-card">
+      <button class="close-card-btn" id="closeCardBtn" aria-label="Đóng thiệp">&times;</button>
+      <div class="card-inner">
+        <div class="card-sparkle-top">✨ 💖 ✨</div>
+        <h2 class="card-title">Mừng Ngày Sinh Nhật Mẹ Yêu!</h2>
+        <div class="card-date">29 Tháng 09</div>
+        <div class="card-divider"></div>
+        <p class="card-body">
+          Con chúc Mẹ một ngày sinh nhật thật ấm áp, luôn mạnh khỏe, tươi trẻ và ngập tràn niềm vui!
+          <br><br>
+          Trái tim đom đóm lung linh hôm nay tựa như muôn vàn lời chúc bình an và hạnh phúc nhất con muốn gửi trao đến Mẹ. Cảm ơn Mẹ vì tất cả tình yêu thương vô bờ bến!
+        </p>
+        <div class="card-signature">
+          Con yêu Mẹ nhiều lắm! ❤️
+        </div>
+        <button class="card-action-btn" id="cardActionBtn">💖 Yêu Mẹ 💖</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
